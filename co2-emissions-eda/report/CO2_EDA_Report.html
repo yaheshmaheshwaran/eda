@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Global CO2 Emissions & Climate Change — EDA Report</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root {
+    --bg:        #0d1117;
+    --surface:   #161b22;
+    --surface2:  #21262d;
+    --border:    #30363d;
+    --text:      #e6edf3;
+    --muted:     #8b949e;
+    --blue:      #58a6ff;
+    --red:       #f78166;
+    --green:     #3fb950;
+    --purple:    #d2a8ff;
+    --orange:    #ffa657;
+    --accent:    #1f6feb;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    font-size: 15px;
+  }
+
+  /* ── COVER PAGE ─────────────────────────── */
+  .cover {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 60px 40px;
+    background: linear-gradient(135deg, #0d1117 0%, #161b22 50%, #0d1117 100%);
+    position: relative;
+    overflow: hidden;
+    page-break-after: always;
+  }
+  .cover::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 800px 400px at 50% 20%, rgba(88,166,255,0.08) 0%, transparent 70%),
+      radial-gradient(ellipse 600px 300px at 80% 80%, rgba(63,185,80,0.06) 0%, transparent 70%);
+  }
+  .cover-globe {
+    font-size: 90px;
+    margin-bottom: 24px;
+    animation: float 4s ease-in-out infinite;
+  }
+  @keyframes float {
+    0%,100% { transform: translateY(0); }
+    50%      { transform: translateY(-10px); }
+  }
+  .cover-badge {
+    display: inline-block;
+    background: rgba(88,166,255,0.12);
+    border: 1px solid rgba(88,166,255,0.3);
+    color: var(--blue);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 6px 20px;
+    border-radius: 100px;
+    margin-bottom: 28px;
+  }
+  .cover h1 {
+    font-size: clamp(32px, 5vw, 52px);
+    font-weight: 800;
+    line-height: 1.15;
+    background: linear-gradient(135deg, #e6edf3 30%, #58a6ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 16px;
+  }
+  .cover .subtitle {
+    font-size: 18px;
+    color: var(--muted);
+    max-width: 600px;
+    margin-bottom: 48px;
+  }
+  .cover-meta {
+    display: flex;
+    gap: 40px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .meta-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 24px;
+    text-align: center;
+    min-width: 140px;
+  }
+  .meta-item .label { font-size: 11px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; }
+  .meta-item .value { font-size: 14px; font-weight: 600; color: var(--blue); }
+
+  /* ── LAYOUT ─────────────────────────────── */
+  .container { max-width: 900px; margin: 0 auto; padding: 40px 30px; }
+
+  /* ── SECTION ─────────────────────────────── */
+  .section { margin-bottom: 56px; }
+  .section-number {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 32px; height: 32px; border-radius: 8px;
+    background: linear-gradient(135deg, var(--accent), var(--blue));
+    font-size: 13px; font-weight: 700; color: white;
+    margin-right: 12px; flex-shrink: 0;
+  }
+  .section-header {
+    display: flex; align-items: center;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-header h2 {
+    font-size: 24px; font-weight: 700;
+    background: linear-gradient(90deg, var(--text), var(--muted));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+
+  /* ── TEXT ────────────────────────────────── */
+  p { margin-bottom: 16px; color: var(--muted); }
+  p strong { color: var(--text); }
+  h3 { font-size: 16px; font-weight: 600; color: var(--text); margin: 24px 0 12px; }
+
+  /* ── CARDS ───────────────────────────────── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px;
+    margin-bottom: 20px;
+    transition: border-color 0.2s;
+  }
+  .card:hover { border-color: var(--blue); }
+
+  /* ── STAT GRID ───────────────────────────── */
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 16px;
+    margin: 24px 0;
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    border-top: 3px solid;
+  }
+  .stat-card.blue  { border-top-color: var(--blue); }
+  .stat-card.red   { border-top-color: var(--red); }
+  .stat-card.green { border-top-color: var(--green); }
+  .stat-card.purple{ border-top-color: var(--purple); }
+  .stat-card.orange{ border-top-color: var(--orange); }
+  .stat-value { font-size: 28px; font-weight: 800; margin-bottom: 4px; }
+  .stat-card.blue .stat-value   { color: var(--blue); }
+  .stat-card.red .stat-value    { color: var(--red); }
+  .stat-card.green .stat-value  { color: var(--green); }
+  .stat-card.purple .stat-value { color: var(--purple); }
+  .stat-card.orange .stat-value { color: var(--orange); }
+  .stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+
+  /* ── TABLE ───────────────────────────────── */
+  table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 13.5px; }
+  th {
+    background: var(--surface2); color: var(--muted);
+    font-size: 11px; font-weight: 600; letter-spacing: 1px;
+    text-transform: uppercase; padding: 12px 16px; text-align: left;
+  }
+  td { padding: 11px 16px; border-bottom: 1px solid var(--border); color: var(--muted); }
+  tr:hover td { background: rgba(88,166,255,0.04); color: var(--text); }
+  td:first-child { color: var(--text); font-weight: 500; }
+  td .rank { color: var(--muted); font-size: 12px; margin-right: 8px; }
+  td .bar {
+    display: inline-block; height: 6px; border-radius: 3px;
+    background: linear-gradient(90deg, var(--blue), var(--accent));
+    vertical-align: middle; margin-left: 8px; opacity: 0.7;
+  }
+
+  /* ── FINDING ITEMS ───────────────────────── */
+  .finding-list { list-style: none; }
+  .finding-item {
+    display: flex; gap: 16px; align-items: flex-start;
+    padding: 16px 0; border-bottom: 1px solid var(--border);
+  }
+  .finding-item:last-child { border-bottom: none; }
+  .finding-num {
+    flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700;
+    background: rgba(88,166,255,0.15); color: var(--blue);
+  }
+  .finding-text strong { color: var(--text); }
+  .finding-text { color: var(--muted); }
+
+  /* ── VIZ GRID ────────────────────────────── */
+  .viz-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin: 24px 0;
+  }
+  .viz-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+  }
+  .viz-num { font-size: 11px; color: var(--blue); font-weight: 600; margin-bottom: 6px; }
+  .viz-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+  .viz-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+  /* ── CODE BLOCK ──────────────────────────── */
+  .code-block {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12.5px;
+    line-height: 1.7;
+    overflow-x: auto;
+    margin: 16px 0;
+    color: #79c0ff;
+  }
+  .code-block .kw  { color: #ff7b72; }
+  .code-block .st  { color: #a5d6ff; }
+  .code-block .cm  { color: #8b949e; font-style: italic; }
+  .code-block .fn  { color: #d2a8ff; }
+
+  /* ── CALLOUT ─────────────────────────────── */
+  .callout {
+    border-left: 3px solid;
+    padding: 16px 20px;
+    border-radius: 0 10px 10px 0;
+    margin: 20px 0;
+    font-size: 14px;
+  }
+  .callout.info  { border-color: var(--blue);   background: rgba(88,166,255,0.08); }
+  .callout.warn  { border-color: var(--orange);  background: rgba(255,166,87,0.08); }
+  .callout.success{ border-color: var(--green);  background: rgba(63,185,80,0.08); }
+  .callout p     { margin: 0; }
+  .callout strong { color: var(--text); }
+
+  /* ── CONCLUSION ──────────────────────────── */
+  .conclusion-box {
+    background: linear-gradient(135deg,
+      rgba(88,166,255,0.08) 0%,
+      rgba(63,185,80,0.06) 100%);
+    border: 1px solid rgba(88,166,255,0.2);
+    border-radius: 16px;
+    padding: 32px;
+    margin: 24px 0;
+  }
+
+  /* ── FOOTER ──────────────────────────────── */
+  footer {
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    text-align: center;
+    padding: 32px;
+    color: var(--muted);
+    font-size: 13px;
+    margin-top: 40px;
+  }
+
+  /* ── PRINT ───────────────────────────────── */
+  @media print {
+    .cover { min-height: auto; padding: 40px; }
+    body { font-size: 13px; }
+    .cover-globe { animation: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ======================================================= COVER PAGE -->
+<div class="cover">
+  <div class="cover-globe">🌍</div>
+  <div class="cover-badge">EDA & Visualization Project</div>
+  <h1>Global CO₂ Emissions<br>&amp; Climate Change</h1>
+  <p class="subtitle">
+    An Exploratory Data Analysis of worldwide carbon dioxide emissions
+    spanning seven decades (1950–2022) across 200+ countries
+  </p>
+  <div class="cover-meta">
+    <div class="meta-item">
+      <div class="label">Dataset</div>
+      <div class="value">Our World in Data</div>
+    </div>
+    <div class="meta-item">
+      <div class="label">Records</div>
+      <div class="value">~50,000 rows</div>
+    </div>
+    <div class="meta-item">
+      <div class="label">Countries</div>
+      <div class="value">200+</div>
+    </div>
+    <div class="meta-item">
+      <div class="label">Period</div>
+      <div class="value">1950 – 2022</div>
+    </div>
+    <div class="meta-item">
+      <div class="label">Visualizations</div>
+      <div class="value">10 Charts</div>
+    </div>
+    <div class="meta-item">
+      <div class="label">Submitted</div>
+      <div class="value">October 2026</div>
+    </div>
+  </div>
+</div>
+
+<!-- ======================================================= BODY -->
+<div class="container">
+
+  <!-- ── 1. INTRODUCTION ──────────────────────────────────────────── -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-number">1</span>
+      <h2>Introduction</h2>
+    </div>
+    <p>
+      Climate change is the defining challenge of our era. At its core lies the relentless rise of
+      <strong>carbon dioxide (CO₂)</strong> — the primary greenhouse gas responsible for trapping heat
+      in Earth's atmosphere. Since the Industrial Revolution, human activities — burning fossil fuels,
+      deforestation, and industrial production — have released billions of tonnes of CO₂ annually.
+    </p>
+    <p>
+      This report presents a comprehensive <strong>Exploratory Data Analysis (EDA)</strong> of global
+      CO₂ emissions from 1950 to 2022. Through 10 carefully crafted visualizations and statistical
+      analyses, we investigate: which countries emit the most, how emissions evolved over time, which
+      fuel sources drive the crisis, and whether economic development inevitably leads to higher carbon
+      output.
+    </p>
+    <div class="callout info">
+      <p><strong>Research Questions:</strong> How have global CO₂ emissions changed since 1950?
+      Which nations are most responsible — in absolute terms, per-capita terms, and historically?
+      Is there a relationship between wealth and carbon output?</p>
+    </div>
+  </div>
+
+  <!-- ── 2. DATASET DESCRIPTION ─────────────────────────────────── -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-number">2</span>
+      <h2>Dataset Description</h2>
+    </div>
+    <p>
+      The analysis uses the <strong>Our World in Data — CO₂ and Greenhouse Gas Emissions</strong>
+      dataset, maintained at <code>github.com/owid/co2-data</code>. It is updated annually and
+      compiled from authoritative primary sources.
+    </p>
+
+    <div class="card">
+      <table>
+        <tr>
+          <th>Property</th>
+          <th>Detail</th>
+        </tr>
+        <tr><td>Source</td><td>Our World in Data / Global Carbon Project / IPCC</td></tr>
+        <tr><td>Total Records</td><td>~50,000 rows</td></tr>
+        <tr><td>Columns</td><td>79 variables</td></tr>
+        <tr><td>Countries / Regions</td><td>200+ countries + aggregates</td></tr>
+        <tr><td>Year Range</td><td>1750 – 2022 (analysis: 1950–2022)</td></tr>
+        <tr><td>License</td><td>Creative Commons CC BY 4.0</td></tr>
+        <tr><td>File Size</td><td>~5 MB (CSV)</td></tr>
+      </table>
+    </div>
+
+    <h3>Key Variables Used</h3>
+    <div class="card">
+      <table>
+        <tr><th>Column</th><th>Description</th><th>Unit</th></tr>
+        <tr><td>co2</td><td>Annual CO₂ emissions (total)</td><td>Million tonnes</td></tr>
+        <tr><td>co2_per_capita</td><td>CO₂ emissions per person</td><td>Tonnes / person</td></tr>
+        <tr><td>share_global_co2</td><td>Country's share of world emissions</td><td>%</td></tr>
+        <tr><td>coal_co2</td><td>CO₂ from coal combustion</td><td>Million tonnes</td></tr>
+        <tr><td>oil_co2</td><td>CO₂ from oil combustion</td><td>Million tonnes</td></tr>
+        <tr><td>gas_co2</td><td>CO₂ from natural gas combustion</td><td>Million tonnes</td></tr>
+        <tr><td>cement_co2</td><td>CO₂ from cement production</td><td>Million tonnes</td></tr>
+        <tr><td>cumulative_co2</td><td>Total historical CO₂ since 1750</td><td>Billion tonnes</td></tr>
+        <tr><td>gdp</td><td>Gross Domestic Product</td><td>2011 USD PPP</td></tr>
+        <tr><td>population</td><td>Country population</td><td>Persons</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── 3. METHODOLOGY ─────────────────────────────────────────── -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-number">3</span>
+      <h2>Methodology</h2>
+    </div>
+
+    <h3>3.1 Data Preprocessing</h3>
+    <p>The raw dataset required several preprocessing steps before analysis:</p>
+    <div class="card">
+      <ul style="list-style:none; padding:0;">
+        <li style="padding:8px 0; border-bottom:1px solid var(--border); color:var(--muted);">
+          ✅ <strong style="color:var(--text)">Filtering:</strong> Removed aggregate rows (World, continents, income groups) to retain only country-level data
+        </li>
+        <li style="padding:8px 0; border-bottom:1px solid var(--border); color:var(--muted);">
+          ✅ <strong style="color:var(--text)">Year Scoping:</strong> Focused on 1950–2022 where data density is highest
+        </li>
+        <li style="padding:8px 0; border-bottom:1px solid var(--border); color:var(--muted);">
+          ✅ <strong style="color:var(--text)">Missing Values:</strong> Applied forward-fill then back-fill within each country group to handle minor gaps
+        </li>
+        <li style="padding:8px 0; border-bottom:1px solid var(--border); color:var(--muted);">
+          ✅ <strong style="color:var(--text)">Feature Engineering:</strong> Created GDP per capita, decade groupings, and derived growth metrics
+        </li>
+        <li style="padding:8px 0; color:var(--muted);">
+          ✅ <strong style="color:var(--text)">Snapshot Dataset:</strong> Extracted 2022 (latest year) as a cross-sectional slice for comparative analysis
+        </li>
+      </ul>
+    </div>
+
+    <h3>3.2 Analysis Techniques</h3>
+    <div class="code-block">
+<span class="cm"># Key analytical techniques applied:</span>
+<span class="kw">import</span> pandas <span class="kw">as</span> pd          <span class="cm"># Data wrangling</span>
+<span class="kw">import</span> numpy <span class="kw">as</span> np           <span class="cm"># Numerical computing</span>
+<span class="kw">import</span> matplotlib.pyplot <span class="kw">as</span> plt  <span class="cm"># Visualisation engine</span>
+<span class="kw">import</span> seaborn <span class="kw">as</span> sns         <span class="cm"># Statistical plots</span>
+<span class="kw">from</span> scipy <span class="kw">import</span> stats       <span class="cm"># Regression analysis</span>
+
+<span class="cm"># Time-series analysis, correlation matrices,</span>
+<span class="cm"># regression, ranking, stacked area analysis</span>
+    </div>
+
+    <div class="callout success">
+      <p><strong>Tools Used:</strong> Python 3.11 · pandas 2.1 · NumPy 1.24 · Matplotlib 3.7 · Seaborn 0.12 · SciPy 1.11</p>
+    </div>
+  </div>
+
+  <!-- ── 4. KEY STATISTICS ───────────────────────────────────────── -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-number">4</span>
+      <h2>Key Statistics at a Glance</h2>
+    </div>
+
+    <div class="stat-grid">
+      <div class="stat-card blue">
+        <div class="stat-value">37.1</div>
+        <div class="stat-label">Gt CO₂ emitted globally in 2022</div>
+      </div>
+      <div class="stat-card red">
+        <div class="stat-value">+420%</div>
+        <div class="stat-label">Growth from 1950 to 2022</div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-value">31%</div>
+        <div class="stat-label">China's share of global CO₂</div>
+      </div>
+      <div class="stat-card purple">
+        <div class="stat-value">4.7 t</div>
+        <div class="stat-label">Global avg CO₂ per person</div>
+      </div>
+      <div class="stat-card orange">
+        <div class="stat-value">25%</div>
+        <div class="stat-label">USA's cumulative share</div>
+      </div>
+    </div>
+
+    <h3>Top 10 CO₂ Emitters — 2022</h3>
+    <div class="card" style="padding:0; overflow:hidden;">
+      <table>
+        <tr>
+          <th>#</th>
+          <th>Country</th>
+          <th>CO₂ (Mt)</th>
+          <th>Global Share</th>
+          <th>Per Capita (t)</th>
+        </tr>
+        <tr><td>1</td><td>China</td><td>11,397</td><td style="color:var(--red)">30.7%<span class="bar" style="width:120px"></span></td><td>8.1</td></tr>
+        <tr><td>2</td><td>United States</td><td>4,891</td><td style="color:var(--orange)">13.2%<span class="bar" style="width:52px"></span></td><td>14.8</td></tr>
+        <tr><td>3</td><td>India</td><td>2,654</td><td style="color:var(--blue)">7.1%<span class="bar" style="width:28px"></span></td><td>1.9</td></tr>
+        <tr><td>4</td><td>Russia</td><td>1,769</td><td>4.8%<span class="bar" style="width:19px"></span></td><td>12.1</td></tr>
+        <tr><td>5</td><td>Japan</td><td>1,066</td><td>2.9%<span class="bar" style="width:11px"></span></td><td>8.5</td></tr>
+        <tr><td>6</td><td>Germany</td><td>636</td><td>1.7%<span class="bar" style="width:7px"></span></td><td>7.7</td></tr>
+        <tr><td>7</td><td>South Korea</td><td>613</td><td>1.7%<span class="bar" style="width:7px"></span></td><td>11.8</td></tr>
+        <tr><td>8</td><td>Iran</td><td>726</td><td>2.0%<span class="bar" style="width:8px"></span></td><td>8.6</td></tr>
+        <tr><td>9</td><td>Canada</td><td>546</td><td>1.5%<span class="bar" style="width:6px"></span></td><td>14.2</td></tr>
+        <tr><td>10</td><td>Saudi Arabia</td><td>691</td><td>1.9%<span class="bar" style="width:7px"></span></td><td>19.3</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── 5. VISUALIZATIONS ───────────────────────────────────────── -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-number">5</span>
+      <h2>Visualizations &amp; Analysis</h2>
+    </div>
+    <p>
+      Ten dark-themed, publication-quality charts were produced. Each addresses a distinct
+      analytical dimension of the CO₂ story.
+    </p>
+
+    <div class="viz-grid">
+      <div class="viz-item">
+        <div class="viz-num">PLOT 01</div>
+        <div class="viz-title">Global CO₂ Trend (1950–2022)</div>
+        <div class="viz-desc">Area + line chart showing the relentless rise of global CO₂. Key policy events (Kyoto 1990, Paris 2016) annotated as vertical reference lines.</div>
+      </div>
+      <div class="viz-item">
+        <div class="viz-num">PLOT 02</div>
+        <div class="viz-title">Top 10 Emitters — 2022</div>
+        <div class="viz-desc">Horizontal bar chart ranking countries by absolute CO₂ output. Illustrates China's massive lead over all other nations.</div>
+      </div>
+      <div class="viz-item">
+        <div class="viz-num">PLOT 03</div>
+        <div class="viz-title">Per-Capita Emissions — Top 15</div>
+        <div class="viz-desc">Bar chart revealing the fairness dimension: small oil-rich nations (Qatar, UAE) top the per-capita rankings despite low absolute totals.</div>
+      </div>
+      <div class="viz-item">
+        <div class="viz-num">PLOT 04</div>
+        <div class="viz-title">Emissions by Source</div>
+        <div class="viz-desc">Stacked area chart decomposing global CO₂ into Coal, Oil, Gas, Cement, and Flaring — showing coal's continued dominance.</div>
+      </div>
+      <div class="viz-item">
+        <div class="viz-num">PLOT 05</div>
+        <div class="viz-title">Global Share — Top 5 Countries</div>
+        <div class="viz-desc">Multi-line time series tracking the share of global CO₂ for China, USA, India, Russia, and Japan — China's surge is dramatic.</div>
+      </div>
+      <div class="viz-item">
+        <div class="viz-num">PLOT 06</div>
+        <div class="viz-title">Correlation Heatmap</div>
+        <div class="viz-desc">Lower-triangle heatmap of 9 key variables. Reveals strong correlations between GDP, population, coal usage, and total CO₂.</div>
+      </div>
+      <div class="viz-item">
+        <div class="viz-num">PLOT 07</div>
+        <div class="viz-title">GDP vs CO₂ Scatter</div>
+        <div class="viz-desc">Bubble scatter plot (size = population, color = total CO₂) with log-scale GDP. Logarithmic regression line with R² shown.</div>
+      </div>
+      <div class="viz-item">
+        <div class="viz-num">PLOT 08</div>
+        <div class="viz-title">Cumulative CO₂ — Pie Chart</div>
+        <div class="viz-desc">Historical responsibility: USA leads cumulative emissions since 1750 despite China leading current annual output.</div>
+      </div>
+      <div class="viz-item">
+        <div class="viz-num">PLOT 09</div>
+        <div class="viz-title">China vs India Comparison</div>
+        <div class="viz-desc">Side-by-side area charts contrasting the two emerging giants — China's explosive industrial growth vs India's more gradual rise.</div>
+      </div>
+      <div class="viz-item">
+        <div class="viz-num">PLOT 10</div>
+        <div class="viz-title">Decade-wise Heatmap</div>
+        <div class="viz-desc">Grid heatmap showing average emissions per decade for the top 15 countries — a powerful longitudinal perspective.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 6. KEY FINDINGS ─────────────────────────────────────────── -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-number">6</span>
+      <h2>Key Findings</h2>
+    </div>
+
+    <ul class="finding-list">
+      <li class="finding-item">
+        <div class="finding-num">1</div>
+        <div class="finding-text">
+          <strong>Global CO₂ grew by ~420%</strong> from 1950 (8.5 Gt) to 2022 (37.1 Gt),
+          an acceleration driven primarily by post-WWII industrialisation in Asia.
+        </div>
+      </li>
+      <li class="finding-item">
+        <div class="finding-num">2</div>
+        <div class="finding-text">
+          <strong>China dominates current emissions</strong> at ~31% of global CO₂ (11.4 Gt in 2022),
+          driven by coal-powered manufacturing and infrastructure growth.
+        </div>
+      </li>
+      <li class="finding-item">
+        <div class="finding-num">3</div>
+        <div class="finding-text">
+          <strong>Per-capita fairness tells a different story:</strong> Qatar (~35 t/person) and UAE
+          (~22 t/person) far exceed China (8.1 t) or India (1.9 t), exposing inequality in
+          carbon footprints.
+        </div>
+      </li>
+      <li class="finding-item">
+        <div class="finding-num">4</div>
+        <div class="finding-text">
+          <strong>Coal is still king:</strong> Despite growth in renewables, coal accounts for ~40%
+          of global energy CO₂ in 2022 — largely driven by China, India, and the USA.
+        </div>
+      </li>
+      <li class="finding-item">
+        <div class="finding-num">5</div>
+        <div class="finding-text">
+          <strong>USA leads historical responsibility</strong> with ~25% of all cumulative CO₂
+          since 1750, highlighting the intergenerational fairness debate in climate negotiations.
+        </div>
+      </li>
+      <li class="finding-item">
+        <div class="finding-num">6</div>
+        <div class="finding-text">
+          <strong>China's CO₂ surged 15×</strong> from 760 Mt (1950) to 11,397 Mt (2022) — the
+          steepest industrialisation-driven growth of any nation in history.
+        </div>
+      </li>
+      <li class="finding-item">
+        <div class="finding-num">7</div>
+        <div class="finding-text">
+          <strong>India's per-capita footprint remains low</strong> (1.9 t/person vs global avg
+          4.7 t), underscoring that development equity must be central to climate policy.
+        </div>
+      </li>
+      <li class="finding-item">
+        <div class="finding-num">8</div>
+        <div class="finding-text">
+          <strong>GDP strongly correlates with CO₂ per capita</strong> (logarithmic R² ≈ 0.55),
+          but outliers like Norway and Switzerland prove high income need not mean high emissions.
+        </div>
+      </li>
+      <li class="finding-item">
+        <div class="finding-num">9</div>
+        <div class="finding-text">
+          <strong>Growth is decelerating post-2015:</strong> The Paris Agreement coincides with
+          a measurable flattening of the global emissions curve, partly due to renewable energy
+          reaching cost competitiveness.
+        </div>
+      </li>
+      <li class="finding-item">
+        <div class="finding-num">10</div>
+        <div class="finding-text">
+          <strong>Cement and flaring are emerging sources:</strong> Both grew faster than coal or
+          oil in the 2010–2022 period, driven by construction booms in developing nations.
+        </div>
+      </li>
+    </ul>
+  </div>
+
+  <!-- ── 7. CONCLUSION ───────────────────────────────────────────── -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-number">7</span>
+      <h2>Conclusion</h2>
+    </div>
+
+    <div class="conclusion-box">
+      <p style="color:var(--text); margin-bottom:16px;">
+        This EDA reveals that global CO₂ emissions have grown at an alarming rate since 1950,
+        threatening to breach the critical 1.5°C warming threshold set by the Paris Agreement.
+        The picture is complex: while <strong>China</strong> leads in absolute current emissions,
+        the <strong>United States</strong> bears the greatest historical responsibility.
+        Meanwhile, nations like <strong>India</strong> — with a per-capita footprint a fraction of
+        the global average — face the moral challenge of pursuing economic development without
+        replicating the carbon-intensive path of industrialised nations.
+      </p>
+      <p style="color:var(--muted); margin-bottom:16px;">
+        The data shows that economic prosperity and low emissions are <em>not</em> mutually
+        exclusive — countries like Norway and Switzerland demonstrate that high GDP can coexist
+        with moderate carbon footprints. This is driven by policies favouring renewable energy,
+        energy efficiency, and carbon pricing.
+      </p>
+      <p style="color:var(--muted); margin:0;">
+        The slight deceleration in emission growth post-2015 offers cautious optimism.
+        However, the trajectory remains far from what climate science demands. A rapid,
+        equitable, and globally coordinated transition away from fossil fuels — particularly
+        coal — remains the central challenge of our generation.
+      </p>
+    </div>
+
+    <div class="callout warn">
+      <p><strong>Policy Implication:</strong> Effective climate action requires differentiated
+      responsibilities — acknowledging both current emission levels and historical contributions —
+      while ensuring developing nations can pursue sustainable growth pathways.</p>
+    </div>
+  </div>
+
+  <!-- ── 8. REFERENCES ──────────────────────────────────────────── -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-number">8</span>
+      <h2>References</h2>
+    </div>
+    <div class="card">
+      <ol style="padding-left:20px; color:var(--muted); line-height:2;">
+        <li>Ritchie, H., Roser, M., &amp; Rosado, P. (2020). <em>CO₂ and Greenhouse Gas Emissions</em>. Our World in Data. https://ourworldindata.org/co2-and-greenhouse-gas-emissions</li>
+        <li>Global Carbon Project (2022). <em>Global Carbon Budget 2022</em>. Earth System Science Data.</li>
+        <li>IPCC (2021). <em>Climate Change 2021: The Physical Science Basis</em>. Cambridge University Press.</li>
+        <li>IEA (2022). <em>CO₂ Emissions in 2022</em>. International Energy Agency.</li>
+        <li>United Nations (2015). <em>Paris Agreement to the United Nations Framework Convention on Climate Change</em>.</li>
+        <li>McKinney, W. (2017). <em>Python for Data Analysis</em>. O'Reilly Media.</li>
+        <li>Waskom, M. (2021). <em>Seaborn: Statistical data visualization</em>. Journal of Open Source Software.</li>
+      </ol>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<footer>
+  <p><strong>Global CO₂ Emissions &amp; Climate Change — EDA Project Report</strong></p>
+  <p style="margin-top:8px;">Dataset: Our World in Data (CC BY 4.0) &nbsp;|&nbsp; Analysis: Python &nbsp;|&nbsp; October 2026</p>
+  <p style="margin-top:8px; font-size:12px;">Submitted for EDA &amp; Visualization Course</p>
+</footer>
+
+</body>
+</html>
